@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stripe charge test</title>
+
+    <style>
+        #content {
+            height: 100vh;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #payment-form {
+            max-width: 500px;
+        }
+    </style>
+</head>
+<body>
+    
+<div id="content">
+    <div id="container"></div>
+    <div id="message"></div>
+</div>
+
+    <script src="https://js.stripe.com/v3/"></script>
+
+    <script>
+        (async () => {
+            const response = await fetch('/api/charge/start', {
+                method: 'POST'
+            });
+            const data = await response.json();
+
+            if(data.status === 'requires_action') {
+
+                const stripe = Stripe(data.data.publishableKey);
+    
+                // Render the Payment Element using the clientSecret
+                const container = document.getElementById('container');
+    
+                var iframe = document.createElement('iframe');
+                iframe.src = data.data.next_action.redirect_to_url.url;
+                iframe.width = 600;
+                iframe.height = 400;
+                container.appendChild(iframe);
+    
+                function on3DSComplete(ev) {
+                    // Hide the 3DS UI
+                    document.getElementById('container').remove();
+                    const message = document.querySelector('#message')
+    
+                    // Check the PaymentIntent
+                    stripe.retrievePaymentIntent(ev.data.payload.clientSecret)
+                        .then(function (result) {
+                            if (result.error) {
+                                // PaymentIntent client secret was invalid
+                                message.innerText = 'Something went wrong.';
+                            } else {
+                                if (result.paymentIntent.status === 'succeeded') {
+                                    // Show your customer that the payment has succeeded
+                                    message.innerText = 'Success! Payment received.';
+                                } else if (result.paymentIntent.status === 'requires_payment_method') {
+                                    // Authentication failed, prompt the customer to enter another payment method
+                                    message.innerText = 'Payment failed. Please try another payment method.';
+                                }
+                            }
+                        });
+                }
+    
+                window.addEventListener('message', function (ev) {
+                    if (ev.data.key === '3DS-authentication-complete') {
+                        on3DSComplete(ev);
+                    }
+                }, false);
+            }else if(data.status === 'succeeded') {
+                document.getElementById('container').remove();
+                document.querySelector('#message').innerText = 'Success! Payment received.';
+            }
+
+
+            // const stripe = Stripe(data.publishableKey);
+
+            // const options = {
+            //     clientSecret: data.paymentIntent,
+            //     // Fully customizable with appearance API.
+            //     // appearance: {/*...*/ },
+            // };
+
+            // // Set up Stripe.js and Elements to use in checkout form, passing the client secret obtained in step 2
+            // const elements = stripe.elements(options);
+            // // Create and mount the Payment Element
+            // const paymentElement = elements.create('payment');
+            // paymentElement.mount('#payment-element');
+
+            // const form = document.getElementById('payment-form');
+
+            // form.addEventListener('submit', async (event) => {
+            //     event.preventDefault();
+
+            //     const { error } = await stripe.confirmPayment({
+            //         //`Elements` instance that was used to create the Payment Element
+            //         elements,
+            //         confirmParams: {
+            //             return_url: 'http://localhost:4000/status.html',
+            //         },
+            //     });
+
+            //     if (error) {
+            //         // This point will only be reached if there is an immediate error when
+            //         // confirming the payment. Show error to your customer (e.g., payment
+            //         // details incomplete)
+            //         const messageContainer = document.querySelector('#error-message');
+            //         messageContainer.textContent = error.message;
+            //     } else {
+            //         // Your customer will be redirected to your `return_url`. For some payment
+            //         // methods like iDEAL, your customer will be redirected to an intermediate
+            //         // site first to authorize the payment, then redirected to the `return_url`.
+            //     }
+            // });
+        })();
+    </script>
+</body>
+</html>
