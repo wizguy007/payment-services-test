@@ -1,5 +1,20 @@
 {
     "users::akinjole@yahoo.com": {
         "stripe_customer_id": "cus_KZ3p5sArFxVlX8"
+    },
+    "users::emmanuelakinjole@gmail.com": {
+        "stripe_customer_id": "cus_KZBHU2tL0Z2I3Z"
+    },
+    "paystackChargeSignature::SIG_90rISTaoMPFB0oVwzJp5": {
+        "email": "akinjole@yahoo.com",
+        "authorizationCode": "AUTH_vowmazrf31"
+    },
+    "paystackUserCharge::akinjole@yahoo.com": {
+        "email": "akinjole@yahoo.com",
+        "signature": "SIG_SvBsv0QNwwC3VV8cHyQ4"
+    },
+    "paystackChargeSignature::SIG_SvBsv0QNwwC3VV8cHyQ4": {
+        "email": "akinjole@yahoo.com",
+        "authorizationCode": "AUTH_4gcchsqocl"
     }
 }
